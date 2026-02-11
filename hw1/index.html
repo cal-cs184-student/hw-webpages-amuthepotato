@@ -28,15 +28,15 @@
 	<body>
 		<div class="container">
 		<h1>CS184/284A Spring 2025 Homework 1 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<div style="text-align: center;">Names: Meghna Subramanium, </div>
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to webpage: (TODO) <a href="https://cal-cs184-student.github.io/hw-webpages-amuthepotato/hw1/index.html">cs184.eecs.berkeley.edu/sp25</a>
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/hw-webpages-amuthepotato">cs184.eecs.berkeley.edu/sp25</a>
 
 		<figure>
 			<img src="lion.jpg" alt="Lion" style="width:50%"/>
@@ -80,7 +80,27 @@
 		</div>
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		When rasterizing geometric objects, such as triangles, the resolution of the grid is not always sufficient for fine details. This limitation causes aliasing, as discussed in lecture, as seen in the jagged edges above from Task 1. Supersampling is an anti-aliasning technique that takes multiple subsamples within each pixel instead of just sampling the pixel center. The final pixel color is an average of each subpixel colors. This approach creates smoother edges, especially at sharp corners or thin edges, as seen in the images below. 
+		In our rasterizer, each pixel has multiple subpixel samples stored in <p style="color:red;">sample_buffer</p>, with the number of samples determined by the <p style="color:red;">sample_rate</p>. For triangles, I loop over each pixel in the triangle’s bounding box and check each subpixel for coverage using a line test. Subpixels that are inside the triangle are assigned the triangle’s color, and later the pixel’s final color is computed by averaging all subpixel samples inside it. This avergaing step is done inside <p style="color:red;">resolve_to_framebuffer</p>. To avoide averaging out poitns and lines, I filled all subpixels with the same color in <p style="color:red;">fill_pixel</p>. 
+		The effect of supersampling can be seen below. Partially covered pixels contribute proportionally to the final color, which eliminates the jagged edges that appear at low sample rates. The effect is very noticeable at small angles or the tips of narrow triangles, where aliasing is most pronounced. By averaging multiple subpixel samples, the rasterizer effectively simulates a higher resolution image before downsampling to the display resolution. At a sample rate of 1, aliasing is visible and jagged edges are seen at the narrow tip of the triangle. However, at a sample rate of 16, the triangle edges appear more smooth because the high number of subpixel samples captures finer details and blends the colors more.
+		<div style="display: flex; flex-direction: column; align-items: center;">
+		<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			<tr>
+			<td style="text-align: center;">
+				<img src="task2_samp1.png" width="400px"/>
+				<figcaption>Sample rate = 1.</figcaption>
+			</td>
+			<td style="text-align: center;">
+				<img src="task2_samp4.png" width="400px"/>
+				<figcaption>Sample rate =4.</figcaption>
+			</td>
+			<td style="text-align: center;">
+				<img src="task2_samp16.png" width="400px"/>
+				<figcaption>Sample rate = 16.</figcaption>
+			</td>
+			</tr>
+		</table>
+		</div>
 
 		<h2>Task 3: Transforms</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
