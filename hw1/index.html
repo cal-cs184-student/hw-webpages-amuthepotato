@@ -88,9 +88,10 @@
 		</div> -->
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
-		When rasterizing geometric objects, such as triangles, the resolution of the grid is not always sufficient for fine details. This limitation causes aliasing, as discussed in lecture, as seen in the jagged edges above from Task 1. Supersampling is an anti-aliasning technique that takes multiple subsamples within each pixel instead of just sampling the pixel center. The final pixel color is an average of each subpixel colors. This approach creates smoother edges, especially at sharp corners or thin edges, as seen in the images below. 
-		In our rasterizer, each pixel has multiple subpixel samples stored in <p style="color:red;">sample_buffer</p>, with the number of samples determined by the <p style="color:red;">sample_rate</p>. For triangles, I loop over each pixel in the triangle’s bounding box and check each subpixel for coverage using a line test. Subpixels that are inside the triangle are assigned the triangle’s color, and later the pixel’s final color is computed by averaging all subpixel samples inside it. This avergaing step is done inside <p style="color:red;">resolve_to_framebuffer</p>. To avoide averaging out poitns and lines, I filled all subpixels with the same color in <p style="color:red;">fill_pixel</p>. 
-		The effect of supersampling can be seen below. Partially covered pixels contribute proportionally to the final color, which eliminates the jagged edges that appear at low sample rates. The effect is very noticeable at small angles or the tips of narrow triangles, where aliasing is most pronounced. By averaging multiple subpixel samples, the rasterizer effectively simulates a higher resolution image before downsampling to the display resolution. At a sample rate of 1, aliasing is visible and jagged edges are seen at the narrow tip of the triangle. However, at a sample rate of 16, the triangle edges appear more smooth because the high number of subpixel samples captures finer details and blends the colors more.
+		<p>When rasterizing geometric objects, such as triangles, the resolution of the grid is not always sufficient for fine details. This limitation causes aliasing, as discussed in lecture, as seen in the jagged edges above from Task 1. Supersampling is an anti-aliasning technique that takes multiple subsamples within each pixel instead of just sampling the pixel center. The final pixel color is an average of each subpixel colors. This approach creates smoother edges, especially at sharp corners or thin edges, as seen in the images below. </p>
+		<p>In our rasterizer, each pixel has multiple subpixel samples stored in <b>sample_buffer</b>, with the number of samples determined by the <b>sample_rate</b>. For triangles, I loop over each pixel in the triangle’s bounding box and check each subpixel for coverage using a line test. Subpixels that are inside the triangle are assigned the triangle’s color, and later the pixel’s final color is computed by averaging all subpixel samples inside it. This avergaing step is done inside <b>resolve_to_framebuffer</b>. To avoide averaging out poitns and lines, I filled all subpixels with the same color in <b>fill_pixel</b>. </p>
+		<p>The effect of supersampling can be seen below. Partially covered pixels contribute proportionally to the final color, which eliminates the jagged edges that appear at low sample rates. The effect is very noticeable at small angles or the tips of narrow triangles, where aliasing is most pronounced. By averaging multiple subpixel samples, the rasterizer effectively simulates a higher resolution image before downsampling to the display resolution. At a sample rate of 1, aliasing is visible and jagged edges are seen at the narrow tip of the triangle. However, at a sample rate of 16, the triangle edges appear more smooth because the high number of subpixel samples captures finer details and blends the colors more.</p>
+
 		<div style="display: flex; flex-direction: column; align-items: center;">
 		<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			<tr>
@@ -114,7 +115,26 @@
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h2>Task 4: Barycentric coordinates</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p> I like to think of barycentric coordinates in the linear algebra interpretation. Barycentric coordinates treat a triangle’s vertices as a basis and express any point inside a triangle as a linear combination of the vertices. Each point has three coefficients, &alpha, &beta, and &gamma, corresponding to the weight of each basis vertex. This is seen in the image below. </p>
+		<figure>
+			<img src="task3_bary.png" alt="Lion" style="width:50%"/>
+			<figcaption>Barycentric coordinates in the linear algebra interpretation.</figcaption>
+		</figure>
+		<p> Barycentric coordinates are used for linear interpolation In our rasterizer, I used barycentric coordinates to interpolate colors. For a triangle with vertices colored red, blue, and green, the color at any point inside the triangle can be calculated as &alpha c0 + &beta c1 + &gamma c2, where c0, c1, and c2 are the vertex colors. This example is seen below, as well as a screenshot of basic/test7.svg. </p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+		<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			<tr>
+			<td style="text-align: center;">
+				<img src="task3_tri.png" width="400px"/>
+				<figcaption>Linear interpolation with color on simple triangle.</figcaption>
+			</td>
+			<td style="text-align: center;">
+				<img src="task3_circle.png" width="400px"/>
+				<figcaption>Test case passed! :D</figcaption>
+			</td>
+			</tr>
+		</table>
+		</div>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
