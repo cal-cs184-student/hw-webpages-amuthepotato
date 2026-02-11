@@ -48,7 +48,11 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		In this project, we implemented a lot of different graphics processes, including triangle rasterization, supersampling for antialiasing, transformations, and texture mapping with filtering techniques to reduce aliasing artifacts.
+		Our program takes in an image and then converts it into pixels for display on a screen. Since triangles are the foundation for a lot of modern graphics, we implemented algoritmhs to determine whether a sample point was inside a triangle and then interpolated values such 
+		as color or texture coordinates across the surface. Supersampling was used to improve image quality so that a lot of jagged edges would appear smoother. Transformations were another key feature. By using transformation matrices, objects could now be
+		scaled, translated, and rotated to become new images. Texture mapping was used to extend the renderer beyond flat colors. We used interpolation of texture coordinates and experimented with pixel sampling methods and level sampling techniques to reduce aliasing.
+		Overall, this assignment brought together concepts from linear algebra and computer graphics into a cohesive system. One of the most interesting takeaways was realizing how many subtle details are required to make rendering look “correct.” Features that seem simple, like smooth edges or textures, require careful mathematical reasoning and algorithm design. Implementing the pipeline from scratch gave us a much deeper appreciation for these complexities are abstracted while performing the same core operations at a massive scale.
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
 		Triangle rasterization is the process of converting a triangle defined in 2D space into a set of discrete piels on a screen. It determines which pixels in the framebuffer should be colored in to visually represent that triangle. To rasterize the triangle, we first ensured that the vertices are consistently ordered (counterclockwise)
