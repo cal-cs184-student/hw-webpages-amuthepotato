@@ -51,10 +51,18 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		Triangle rasterization is the process of converting a triangle defined in 2D space into a set of discrete piels on a screen. It determines which pixels in the framebuffer should be colored in to visually represent that triangle. To rasterize the triangle, we first ensured that the vertices are consistently ordered (counterclockwise)
+		by computing the signed area using a cross product and swapping the two vertices if the orientation was clockwise (if the area was less than 0). Then, to compute the bounding box of the triangle (the smallest rectangle that fully contains the triangle), we took the minimum and maximum x and y values of the three vertices and used 
+		floor and ceil to make sure no pixels were cut off. Then, for each pixel in the bounding box, we iterated over every pixel with a double for loop and used an edge function to test if the pixel was on the correct side of the edge of the triangle (inside or not). If it passed all the three edge tests, that means it's inside the triangle
+		and then we can write color to the corresponding position in the sample buffer. Our algorithm is no worse than one that checks each sample within the bounding box of the triangle because it does exactly that. We restricted all the work to be inside the bounding box and performed a constant amount of computation per sample. 
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
+		<figure>
+			<img src="Task 1 Picture.png" alt="Task 1 Picture" style="width:50%"/>
+			<figcaption>Test 4 with the default viewing parameters and showing the edge of the triangle.</figcaption>
+		</figure>
+
+		<!--<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p> -->
+		<!-- <div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
@@ -77,7 +85,7 @@
 				</td>
 			  </tr>
 			</table>
-		</div>
+		</div> -->
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
 		When rasterizing geometric objects, such as triangles, the resolution of the grid is not always sufficient for fine details. This limitation causes aliasing, as discussed in lecture, as seen in the jagged edges above from Task 1. Supersampling is an anti-aliasning technique that takes multiple subsamples within each pixel instead of just sampling the pixel center. The final pixel color is an average of each subpixel colors. This approach creates smoother edges, especially at sharp corners or thin edges, as seen in the images below. 
