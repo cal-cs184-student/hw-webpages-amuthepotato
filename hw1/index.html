@@ -93,7 +93,7 @@
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
 		<p>When rasterizing geometric objects, such as triangles, the resolution of the grid is not always sufficient for fine details. This limitation causes aliasing, as discussed in lecture, as seen in the jagged edges above from Task 1. Supersampling is an anti-aliasning technique that takes multiple subsamples within each pixel instead of just sampling the pixel center. The final pixel color is an average of each subpixel colors. This approach creates smoother edges, especially at sharp corners or thin edges, as seen in the images below. </p>
-		<p>In our rasterizer, each pixel has multiple subpixel samples stored in <b>sample_buffer</b>, with the number of samples determined by the <b>sample_rate</b>. For triangles, I loop over each pixel in the triangle’s bounding box and check each subpixel for coverage using a line test. Subpixels that are inside the triangle are assigned the triangle’s color, and later the pixel’s final color is computed by averaging all subpixel samples inside it. This avergaing step is done inside <b>resolve_to_framebuffer</b>. To avoide averaging out poitns and lines, I filled all subpixels with the same color in <b>fill_pixel</b>. </p>
+		<p>In our rasterizer, each pixel has multiple subpixel samples stored in <code>sample_buffer</code>, with the number of samples determined by the <code>sample_rate</code>. For triangles, I loop over each pixel in the triangle’s bounding box and check each subpixel for coverage using a line test. Subpixels that are inside the triangle are assigned the triangle’s color, and later the pixel’s final color is computed by averaging all subpixel samples inside it. This avergaing step is done inside <code>resolve_to_framebuffer</code>. To avoide averaging out poitns and lines, I filled all subpixels with the same color in <code>fill_pixel</code>. </p>
 		<p>The effect of supersampling can be seen below. Partially covered pixels contribute proportionally to the final color, which eliminates the jagged edges that appear at low sample rates. The effect is very noticeable at small angles or the tips of narrow triangles, where aliasing is most pronounced. By averaging multiple subpixel samples, the rasterizer effectively simulates a higher resolution image before downsampling to the display resolution. At a sample rate of 1, aliasing is visible and jagged edges are seen at the narrow tip of the triangle. However, at a sample rate of 16, the triangle edges appear more smooth because the high number of subpixel samples captures finer details and blends the colors more.</p>
 
 		<div style="display: flex; flex-direction: column; align-items: center;">
@@ -144,21 +144,38 @@
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+		<p>Level sampling is a technique used to reduce aliasing artifacts that occur when high resolution textures are mapped onto surfaces that appear far away. To fix this, we use mipmaps, which are precomputed levels of lower resolution versions of the same texture. Instead of always sampling from the highest resolution image, we estimate the level to use depending on how quickly the texture coordinates change in screen space.</p>
+		<p>Our implementation builds on Task 5. To calculate the correct mipmap level, I compute <code>duv_dx</code> and <code>duv_dy</code> using barycentric coordinates, scale them by the texture width and height, and then compute the mipmap level using the equation from lecture below. </p>
+		<figure>
+			<img src="task6_leveleq.png" alt="Lion" style="width:50%"/>
+			<figcaption>Equation to calculate level in <code>get_level</code>.</figcaption>
+		</figure>
+		<p>The <code>SampleParams</code> struct stores the base uv coordinate, its x and y differentials, and the selected pixel and level sampling modes. The <code>tex.sample()</code>function then selects the appropriate mipmap level and sampling method based on these parameters. The <code>L_ZERO</code> method always samples from mipmap level 0, which preserves detail but causes aliasing. <code>L_NEAREST</code> computes L and rounds it to the nearest integer mipmap level. Finally, <code>L_LINEAR</code> linearly interpolates between the results of sampling at <code>floor(L)</code> and <code>ceil(L)</code>. In regards to tradeoffs, increasing the number of samples per pixel improves edge antialiasing but increases both memory usage and runtime proportionally to the sample rate based on our implementation. Bilinear pixel sampling has a similar memory cost to nearest sampling but is computationally more expensive. Level sampling requires additional memory to store downsampled texture levels, but it significantly reduces aliasing for distant or minified textures. Linear level sampling provides the highest visual quality among the level sampling modes because it smooths transitions between mipmap levels, though it incurs slightly more computation. Overall, increasing sampling complexity improves visual quality but increases runtime cost. Pixel sampling affects computation time but not memory usage. Level sampling requires additional memory to store mipmaps, but significantly reduces aliasing during minification. Although it is a bit hard to see below due to the small image, <code>L_NEAREST</code> + <code>P_LINEAR</code> provides the strongest antialiasing power, while <code>L_ZERO</code> + <code>P_NEAREST</code> is the fastest but produces the most artifacts.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="task6_zero_near2.png" width="400px"/>
+				  <figcaption><code>L_ZERO</code> + <code>P_NEAREST</code>.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="task6_zero_lin2.png" width="400px"/>
+				  <figcaption><code>L_ZERO</code> + <code>P_LINEAR</code>.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="task6_near_near2.png" width="400px"/>
+				  <figcaption><code>L_NEAREST</code> + <code>P_NEAREST</code>.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="task6_near_lin2.png" width="400px"/>
+				  <figcaption><code>L_NEAREST</code> + <code>P_LINEAR</code>.</figcaption>
+				</td>
+			  </tr>
+			</table>
 		</div>
+
+	</div>
 	</body>
 </html>
