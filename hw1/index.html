@@ -116,7 +116,12 @@
 		</div>
 
 		<h2>Task 3: Transforms</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<figure>
+			<img src="robot.png" alt="Robot" style="width:50%"/>
+			<figcaption>Task 3's robot! He's running with a hat on.</figcaption>
+		</figure>
+		Using a lot of basic transforms, we made the robot's arms move so that it looks like it's running. For the torso and legs, we rotated them again so that it looked like he was running. 
+		Finally, we changed his color and added a little hat by translating the hat to be on top of his head. To implement translation, scaling, and rotation matrices, we used the 2D transformation matrix formulas that are standard for these transformations. 
 
 		<h2>Task 4: Barycentric coordinates</h2>
 		<p> I like to think of barycentric coordinates in the linear algebra interpretation. Barycentric coordinates treat a triangle’s vertices as a basis and express any point inside a triangle as a linear combination of the vertices. Each point has three coefficients, &alpha, &beta, and &gamma, corresponding to the weight of each basis vertex. This is seen in the image below. </p>
@@ -141,7 +146,62 @@
 		</div>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		Pixel sampling is the process of determining what color a screen pixel should receive from a texture when performing 
+		texture mapping. Because textures are stored as discrete grids of texels but texture coordinates (u, v) are continous 
+		values interpolated across a triangle, we need a method to convert the fractional coordinates into a final color. In our 
+		implementation, pixel sampling happens inside <b>rasterize_textured_triangle</b>. For each pixel (and each subpixel when supersampling
+		is enabled), we first computed barycentric coordinates (alpha, beta, gamma) using the triangle's vertices. Then, we used those barycentric weights to 
+		interpolate the corresponding texture coordinates <b>(u, v)</b> from <b>(u0, v0)</b>, <b>(u1, v1)</b>, and <b>(u2, v2)</b>. These interpolated
+		coordinates are stored in a <b>SampleParams</b> struct. After filling in the <b>psm</b> values, the struct was passed into 
+		<b>tex.sample(sp)</b>, which performs the actual pixel sampling (nearest or bilinear) and returns the texture color. That color is then written
+		into the <b>sapmle_buffer</b> at the correct supersample/sample index. 
+		<p>The two pixel sapmling methods differ in how they compute the color from a texture coordinate. Nearest neighbor sampling
+			simply rounds the scaled <b>(u, v)</b> coordinate to the closest texel and returns that texel's color. While this method is fast, 
+			it often produces blocky artifacts and visible aliasing. Bilinear sampling, finds the four texels surrounding the <b>(u, v)</b> coordinate 
+			and performs linear interpolation first in one direction and then in the other, blending the four neighboring texels. This produces smoother
+			transitions and reduces aliasing, but it slightly blurs the edges and is computationally more expensive. 
+		</p>
+		
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="nearestsampling1.png" width="400px"/>
+				  <figcaption>Nearest sampling at 1 sample per pixel</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="nearest16.png" width="400px"/>
+				  <figcaption>Nearest sampling at 16 samples per pixel</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="bilinear1.png" width="400px"/>
+				  <figcaption>Bilinear sampling at 1 sample per pixel</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="bilinear16.png" width="400px"/>
+				  <figcaption>Bilinear sampling at 16 samples per pixel</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			With nearest sampling at 1 sample per pixel, the result appears very blocky. 
+			Each screen pixel simply takes the value of the closest texel, so when the texture is 
+			magnified you can clearly see square texel boundaries. 
+			Along diagonal edges of the triangle, the texture looks jagged and stair-stepped. 
+			Using the pixel inspector, you can observe abrupt color jumps between neighboring pixels.
+			With nearest sampling at 16 samples per pixel, the triangle edges themselves become smoother because supersampling reduces geometric aliasing. 
+			However, the texture still looks blocky. The improvement is mainly along triangle edges, not within the texture detail.
+			With bilinear sampling at 1 sample per pixel, the texture immediately looks smoother even without supersampling. Instead of sharp texel blocks, transitions between colors are blended. 
+			When inspecting pixels, you can see gradual color variation instead of abrupt jumps.
+			Finally, bilinear sampling at 16 samples per pixel produces the smoothest result overall. Supersampling smooths the triangle boundaries, and bilinear interpolation smooths the texture detail. 
+			The largest idfference between the two methods happen when there's a lot of detail in the image and when its magnified. Nearest sampling exaggerates the discrete nature of the texels, while
+			bilinear sampling reduces these artifacts. When textures are low-frequency, or when they are heavily minified with mipmapping, the difference between the 
+			two methods becomes much smaller because there are fewer sharp texel transitions. 
+		</p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
 		<p>Level sampling is a technique used to reduce aliasing artifacts that occur when high resolution textures are mapped onto surfaces that appear far away. To fix this, we use mipmaps, which are precomputed levels of lower resolution versions of the same texture. Instead of always sampling from the highest resolution image, we estimate the level to use depending on how quickly the texture coordinates change in screen space.</p>
