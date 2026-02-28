@@ -135,7 +135,24 @@
 		<h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
 
 		<h3>Part 3: Area-weighted vertex normals</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		To implement area-weighted vertex normals, we iterated over all the faces incident to a given 
+		vertex using the halfedge data structure. Starting from the vertex's outgoing halfedge, we 
+		traversed around the vertex by repeatedly using twin()->next() until returning to the starting halfedge. 
+		For each adjacent triangle that was not a boundary face, we computed an area-weighted face normal using 
+		the cross product of two edge vectors formed from the triangle’s vertices. This cross product produces a 
+		vector whose magnitude is proportional to the triangle’s area and whose direction is perpendicular to the face. 
+		We accumulated these vectors for all incident faces and then normalized the final sum to obtain a unit normal at the vertex.
+
+		<figure>
+			<img src="Screenshot 2026-02-27 at 3.45.44 PM.png" alt="Teapot" style="width:50%"/>
+			<figcaption>Teapot with default flat shading</figcaption>
+		</figure>
+
+		<figure>
+			<img src="Screenshot 2026-02-27 at 3.45.55 PM.png" alt="Teapot" style="width:50%"/>
+			<figcaption>Teapot with Phong shading (after pressing Q)</figcaption>
+		</figure>
+
 
 		<h3>Part 4: Edge flip</h3>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
