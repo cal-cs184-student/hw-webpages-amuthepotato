@@ -155,18 +155,44 @@
 
 
 		<h3>Part 4: Edge flip</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		To implement the edge flip operation, we first ensured the edge was not on the boundary by checking that both adjacent faces were interior triangles. 
+		We then labeled each of the six halfedges involved in the two neighboring triangles, along with 
+		their associated vertices, edges, and faces. Since an edge flip doesn't create or delete any elements, 
+		we just had to make sure the pointers were reassigned consistently. We changed the two halfedges of the target 
+		edge to connect the opposite vertives, updated the next, vertex, and face pointers 
+		for all six halfedges and reset the halfedge pointers of the vertices and faces affected 
+		to ensure that they referenced valid outgoing halfedges. To debug, we drew out the triangles on an iPad and explicitly
+		labeled all of the edges, vertices, and faces with the variables that we had in our code. 
+		This helped prevent logical mistakes. Most of our issues came from missing a single pointer update, which 
+		led to segmentation faults or traversal errors later. Stepping through each part of our code 
+		visually also helped in debugging. 
 
+		<figure>
+			<img src="edge flipped with smooth shading.png" alt="Teapot" style="width:50%"/>
+			<figcaption>Normal teapot</figcaption>
+		</figure>
+
+		<figure>
+			<img src="edge flipped no smooth shading.png" alt="Teapot" style="width:50%"/>
+			<figcaption>Teapot after some edge flips</figcaption>
+		</figure>
+
+		<figure>
+			<img src="normal.png" alt="Teapot" style="width:50%"/>
+			<figcaption>Teapot after edge flips and with smooth shading on</figcaption>
+		</figure>
+
+	
 		<h3>Part 5: Edge split</h3>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<!-- <h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
+		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. -->
 
-		<h2>Additional Notes (please remove)</h2>
+		<!-- <h2>Additional Notes (please remove)</h2>
 		<ul>
 			<li>You can also add code if you'd like as so: <code>code code code</code></li>
 			<li>If you'd like to add math equations, 
@@ -175,7 +201,7 @@
 					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
 				</ul>
 			</li>
-		</ul>
+		</ul> -->
 		</div>
 	</body>
 </html>
