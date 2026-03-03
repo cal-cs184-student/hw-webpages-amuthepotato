@@ -48,7 +48,8 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		<p>In this project, we explored several fundamental techniques in geometric modeling discussed in lecture. We first implemented de Casteljau’s algorithm to construct and evaluate Bezier curves and surfaces. Next, we worked with triangle meshes using the half-edge data structure and implemented loop subdivision to refine meshes and produce smoother surfaces. </p>
+		<p>Through this assignment, we developed a deeper understanding of how smooth curves and surfaces can be generated from control points, how polygonal meshes are structured and manipulated, and how subdivision schemes systematically improve surface smoothness. </p>
 
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
@@ -184,10 +185,95 @@
 
 	
 		<h3>Part 5: Edge split</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>Next, we implemented <code>edgeSplit</code>, which inserts a new vertex at the midpoint of an edge and replaces the two adjacent triangles with four smaller triangles. We assigned the two halfedges of the selected non-boundary edge, along with the surrounding halfedges, vertices, and faces. We then created a new vertex at the midpoint by averaging the positions of the edge’s endpoints. </p>
+		<p>The operation required allocating one new vertex, three new edges, six new halfedges, and two new faces, which can be seen in the sketch below. After creating these elements, we reassigned all <code>twin</code>, <code>next</code>, <code>vertex</code>,<code>edge</code>, and <code>face</code> pointers to form four valid triangular faces. We reused the original edge and carefully updated connectivity so that each triangle had a full cycle. </p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="sketch.png" width="400px"/>
+				  <figcaption>Sketch of new configuration. </figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+		<p>The main difficulty was managing the large number of pointer updates. A single incorrect next pointer caused traversal to break or loop infinitely, and our code would crash. To debug, I drew a labeled diagram, seen above, of the local configuration and verified that every face formed a closed cycle. </p>
+		<p>The before and after of applying edge splits to a mesh can be seen below. The before and after of applying a combination of edge splits and flips to a mesh can also be seen below. </p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="hw2_before.png" width="400px"/>
+				  <figcaption>Teapot with no edge splits. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_1.png" width="400px"/>
+				  <figcaption>Teapot with edge splits. </figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="hw2_before.png" width="400px"/>
+				  <figcaption>Teapot with no edge flips or splits. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_2.png" width="400px"/>
+				  <figcaption>Teapot with edge flips and splits. </figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>We implemented loop subdivision in <code>upsample</code> by following the recommended approach: compute new vertex positions, split all original edges, flip appropriate edges, and then update final vertex positions. </p>
+		<p>First, we iterated over all original vertices and computed their new positions using the loop weighting rule. For each vertex, we traversed its neighbors using halfedge iteration, summed their positions, and computed the weighted average using <code>u = 3/16</code> for degree 3 and <code>u = 3/(8n)</code> otherwise. We stored the result in <code>newPosition</code> and marked all original vertices as <code>isNew = false</code>. Next, we computed the new positions for vertices that would be created by edge splits. For each original edge, we retrieved its two endpoints A and B along with the two opposite vertices C and D, and stored <code>3/8 * (A + B) + 1/8 * (C + D)</code> in <code>newPosition</code>. We also marked all original edges as <code>isNew = false</code>. To avoid splitting edges multiple times, we first collected all original edges into a separate vector. We then split each of these edges exactly once. After each split, we marked the newly created vertex as <code>isNew = true</code>, assigned it the precomputed <code>newPosition</code>, and marked the new edges created during the split as <code>isNew = true</code>. After all splits, we flipped any edge marked as new that connected one old vertex and one new vertex. This step enforces the proper loop subdivision connectivity pattern. Finally, we copied all stored <code>newPosition</code> values into <code>position</code>. </p>
+		<p>One debugging challenge was only flipping edges connected to the new vertex that connected an old vertex and an old vertex. We did this by skipping every other edge from the new vertex. </p>
+		<p>After several iterations of loop subdivision, meshes become significantly smoother. Sharp edges and corners round off, and blocky shapes soften. This can be seen below with the teapot. On the cube, repeated subdivision causes the cube to become slightly asymmetric because each face’s mesh is not symmetric, and this asymmetry propagates through each iteration. By pre-processing the cube with edge flips to make the diagonals consistent and symmetric across all faces and splitting each diagonal, the subdivision becomes much more uniform, and the cube maintains symmetry after multiple iterations. This can be seen below. </p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="hw2_before.png" width="400px"/>
+				  <figcaption>Teapot with no iterations of loop subdivision. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_3.png" width="400px"/>
+				  <figcaption>Teapot with 1 iteration of loop subdivision. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_4.png" width="400px"/>
+				  <figcaption>Teapot with 2 iterations of loop subdivision. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_5.png" width="400px"/>
+				  <figcaption>Teapot with 3 iterations of loop subdivision. </figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="hw2_cubebefore.png" width="400px"/>
+				  <figcaption>Cube with no iterations of loop subdivision. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_6.png" width="400px"/>
+				  <figcaption>Cube with 1 iteration of loop subdivision with no pre-processing. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_7.png" width="400px"/>
+				  <figcaption>Cube with 2 iterations of loop subdivision with no pre-processing. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_8.png" width="400px"/>
+				  <figcaption>Cube with 1 iteration of loop subdivision with pre-processing. </figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="hw2_9.png" width="400px"/>
+				  <figcaption>Cube with 2 iterations of loop subdivision with pre-processing. </figcaption>
+				</td>
+			  </tr>
+			  <tr>
+			</table>
+		</div>
 
 		<!-- <h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. -->
