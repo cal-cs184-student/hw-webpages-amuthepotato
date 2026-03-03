@@ -56,7 +56,7 @@
 		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
 		De Casteljau's algorithm is a recursive method to evaluate Bezier curves at a parameter. 
 		It repeatedly performs linear interpolation between adjacent control points. With n points, 
-		we compute n - 1 new points using the formula \( p^'<sub>i</sub> = (1 - t)p<sub>i</sub> + tp<sub>i+1</sub> \).
+		we compute n - 1 new points using the formula (p^'<sub>i</sub> = (1 - t)p<sub>i</sub> + tp<sub>i+1</sub>).
 		These new points form a smaller polygon, and then the points of that polygon become the new points used 
 		in the formula. The process repeats until only one point remains. That final point lies on the Bezier
 		curve at parameter t. In our implementation, we wrote a function that performs one step of the interpolation between 
@@ -125,7 +125,7 @@
 		points can then be treated as control points of a second Bezier curve and we can apply de Casteljau again using
 		parameter v. We interpolate until only one point remains again. That final point is the evaluated position 
 		on the Bezier surface. In our implementation, we reused the 1D function to first collapse each 
-		row of u, storing the resulting points in a vecotr, and then applied the same 1D algorithm 
+		row of u, storing the resulting points in a vector, and then applied the same 1D algorithm 
 		to that vector at v to get the final surface point.
 
 		<figure>
@@ -197,7 +197,7 @@
 			  </tr>
 			</table>
 		</div>
-		<p>The main difficulty was managing the large number of pointer updates. A single incorrect next pointer caused traversal to break or loop infinitely, and our code would crash. To debug, I drew a labeled diagram, seen above, of the local configuration and verified that every face formed a closed cycle. </p>
+		<p>The main difficulty was managing the large number of pointer updates. A single incorrect next pointer caused traversal to break or loop infinitely, and our code would crash. To debug, we drew a labeled diagram, seen above, of the local configuration and verified that every face formed a closed cycle. </p>
 		<p>The before and after of applying edge splits to a mesh can be seen below. The before and after of applying a combination of edge splits and flips to a mesh can also be seen below. </p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
