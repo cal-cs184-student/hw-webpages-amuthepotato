@@ -91,7 +91,7 @@
 		by estimating the incoming radiance. Since a single ray can't capture all of the light contributions, 
 		we use Monte Carlo sampling to approximate the integral of radiance over the pixel. For each pixel, 
 		we generate multiple rays with slight offsets within the pixel using a uniform grid sampler. Each 
-		ray is then traced through the scene by calling est_radiance_global_illumination, which 
+		ray is then traced through the scene by calling <code>est_radiance_global_illumination</code>, which 
 		currently returns a debug shading value. The results of all rays are averaged to compute the final color of the pixel, 
 		which is then stored in the sample buffer. This approach helps reduce aliasing and produces smoother images, 
 		especially along edges and areas with fine detail. 
@@ -119,9 +119,9 @@
 
 		<h3>Ray-Sphere Intersection</h3>
 		For spheres, the intersection test is derived analytically from the quadratic equation of the sphere surface. We 
-		represent the sphere with a center o, and radius r, and the ray as r(t) = origin + t * direction. Substituting the ray 
-		into the sphere equation (p - o)^2 = r^2 gives a quadratic in t. Solving this yields two roots corresponding to the entry and exit points of the ray 
-		with the sphere. We choose the closest positive t that falls within the ray's min_t and max_t. For the function intersect, 
+		represent the sphere with a center o, and radius r, and the ray as <code>r(t) = origin + t * direction</code>. Substituting the ray 
+		into the sphere equation <code>(p - o)^2 = r^2</code> gives a quadratic in t. Solving this yields two roots corresponding to the entry and exit points of the ray 
+		with the sphere. We choose the closest positive t that falls within the ray's <code>min_t</code> and <code>max_t</code>. For the function intersect, 
 		we compute the intersection point using the t we choose and determine the surface normal analytically by normalizing the vector from the sphere center to 
 		the hit point. This normal, along with the primitive and its BSDF, is stored in the Intersection structure.
 
@@ -141,7 +141,7 @@
 		primitives within the current range. This was done by iterating through the primitives between the start 
 		and end iterators and expanding the bounding box using each primitive's bounding box. After the bounding box was done being computed, 
 		a new BVHNode was created to represent it. Next, we checked the number of primitives in the current range. If the number of primitives was less than or equal 
-		to the specified max_leaf_size, the node was designated as a leaf node. In this case, the node stored the start and end iterators and did't create 
+		to the specified <code>max_leaf_size</code>, the node was designated as a leaf node. In this case, the node stored the start and end iterators and did't create 
 		any child nodes. If the number of primitives exceeded the maximum leaf size, the primitives were split into two groups to form 
 		the left and right subtrees. To determine the splitting axis, we looked at the extent of the bounding box, which is the total space an object occupies and is 
 		defined by the minimum and maximum coordinates. We then selected the axis with the largest dimension (so the axis along which the bounding box 
@@ -156,7 +156,7 @@
 		We implemented the ray-bounding box intersection test in this task. The method determines whether a ray intersects an axis-aligned 
 		bounding box by computing intersection intervals along each axis independently. For each axis, we calcualted the parameter values 
 		where the ray intersects the two planes defining that axis of the box. These values were computed using the optimized ray-plane intersection 
-		formula given in class, which takes advantage of axis alignemnt to reduce the number of operations. For example, t1 = (min.x (or max.x) - origin) / the direction of the ray. 
+		formula given in class, which takes advantage of axis alignemnt to reduce the number of operations. For example, <code>t1 = (min.x (or max.x) - origin) / the direction of the ray</code>. 
 		The entry value would be the smaller one and the exit value would be the 
 		larger one. After computing the entry and exit intersection 
 		values for each axis, we updated the valid interval of the ray by taking the maximum of the entry values 
@@ -169,7 +169,7 @@
 		intersects the bounding box of the current node using the bounding box intersection function from Task 2. If the ray does not 
 		intersect the node's bounding box, the traversal can safely terminate early because none of the primitives contained in that node 
 		can be hit. If the node is a leaf node, the algorithm directly tests the ray against each primitive stored in that node. 
-		In has_intersection, the function returns immediately once a primitive intersection is found. In intersect, we check all 
+		In <code>has_intersection</code>, the function returns immediately once a primitive intersection is found. In <code>intersect</code>, we check all 
 		primitives within the node and update the intersection record accordingly. If the node is not a leaf node, 
 		the algorithm recursively traverses both the left and right child nodes. Any intersections found in the child nodes are compared, 
 		and the nearest intersection along the ray is returned. This recursive traversal allows the algorithm to efficiently 
