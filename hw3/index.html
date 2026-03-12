@@ -28,7 +28,7 @@
 	<body>
 		<div class="container">
 		<h1>CS184/284A Spring 2025 Homework 3 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<div style="text-align: center;">Names: Amy Jintian Xiao and Meghna Subramanium</div>
 
 		<br>
 
@@ -48,9 +48,20 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Task 1: Generating Camera Rays</h3>
+		
+		In the first part of the rendering pipeline, rays are generated from the camera through each pixel
+		in the image. To do so, we first look at the image space and transform a coordinate (x, y) to camera space.
+		Since the origins are different in camera and image space, we also had to account for that. The image's center 
+		is at (0.5, 0.5) while in camera space, it is at (0, 0, -1). The bottom left corner for image space is at (0, 0) while 
+		for camera space, the bottom left corner is at <code>(-tan(hFov/2), -tan(vFov/2), -1)</code>. The top right corner in image space is (1, 1) 
+		while in camera space, it's at <code>(tan(hFov/2), tan(vFov/2), -1)</code>. To align these, we compute the camera-space coordinates for each pixel 
+		by normalizing the pixel coordinates and offsetting them relative to the center. Once the camera-space position is computed, 
+		we construct a primary ray originating from the camera and passing thruogh the pixel location on the image plane. This ray serves 
+		as the starting point for all subsequent intersection calculations.
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+
+		<!-- <p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
@@ -74,8 +85,56 @@
 				</td>
 			  </tr>
 			</table>
-		</div>
-		
+		</div> -->
+		<h3>Task 2: Generating Pixel Samples</h3>
+		After generating rays for each pixel, the next step is to compute the colro of the pixel 
+		by estimating the incoming radiance. Since a single ray can't capture all of the light contributions, 
+		we use Monte Carlo sampling to approximate the integral of radiance over the pixel. For each pixel, 
+		we generate multiple rays with slight offsets within the pixel using a uniform grid sampler. Each 
+		ray is then traced through the scene by calling est_radiance_global_illumination, which 
+		currently returns a debug shading value. The results of all rays are averaged to compute the final color of the pixel, 
+		which is then stored in the sample buffer. This approach helps reduce aliasing and produces smoother images, 
+		especially along edges and areas with fine detail. 
+
+		<figure>
+			<img src="CBempty.png" alt="Visualization of camera rays" style="width:70%"/>
+			<figcaption>CBEmpty.png, showing the direction of camera rays through the pixel in the world space</figcaption>
+		</figure>
+
+		<h3>Task 3: Ray-Triangle Intersection</h3>
+		The triangle intersection task involves detecting whether a ray intersects a triangle in the scene, and, if so, 
+		computing the intersection details. We implemented the Möller-Trumbore algorithm, which uses barycentric coordinates. 
+		First, we compute two edge vectors of the triangle and then the vector h as the cross product of the ray direction and one edge. The 
+		determinant is the dot product of the other edge with h. If the determinant is near zero, that means the ray is parallel to the 
+		triangle and there is no intersection. Otherwise, we computed the inverse of the determinant and the vector from the triangle vertex 
+		to the origin. Using these, we calculate the barycentric coordinates u and v. If both u and v are between 0 and 1 and 
+		their sum doesn't exceed 1, the intersection lies inside the triangle. Finally, we compute t along the ray direction, which tells you how far 
+		along the ray you are from the origin. For the function intersect, we also updated the Intersection structure with the interpolated surface normal using the 
+		barycentric weights, the primitive pointer, and its BSDF. 
+
+		<figure>
+			<img src="CBempty2.png" alt="Box" style="width:70%"/>
+			<figcaption>CBEmpty.png, but now with triangle intersection</figcaption>
+		</figure>
+
+		<h3>Ray-Sphere Intersection</h3>
+		For spheres, the intersection test is derived analytically from the quadratic equation of the sphere surface. We 
+		represent the sphere with a center o, and radius r, and the ray as r(t) = origin + t * direction. Substituting the ray 
+		into the sphere equation (p - o)^2 = r^2 gives a quadratic in t. Solving this yields two roots corresponding to the entry and exit points of the ray 
+		with the sphere. We choose the closest positive t that falls within the ray's min_t and max_t. For the function intersect, 
+		we compute the intersection point using the t we choose and determine the surface normal analytically by normalizing the vector from the sphere center to 
+		the hit point. This normal, along with the primitive and its BSDF, is stored in the Intersection structure.
+
+		<figure>
+			<img src="CBspheres.png" alt="Spheres" style="width:70%"/>
+			<figcaption>CBSphere.png after Task 4</figcaption>
+		</figure>
+
+		<figure>
+			<img src="banana.png" alt="Spheres" style="width:70%"/>
+			<figcaption>banana.png after Task 4</figcaption>
+		</figure>
+
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
