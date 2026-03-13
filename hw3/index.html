@@ -214,7 +214,7 @@
 
 		<h3>Task 3: Direct Lighting with Uniform Hemisphere Sampling</h3>
 		The goal in this task was to estimate direct illumination on a surface point by sampling directions uniformly 
-		over the hemisphere above the surface. Wr use the Monte Carlo approximation of the rendering equation given in class, which is 
+		over the hemisphere above the surface. We use the Monte Carlo approximation of the rendering equation given in class, which is 
 		the integral of the BSDF multiplied by the incoming radiance, multiplied by the angle between the surface normal and the sample incoming direction. 
 		First we create a local coordinate system where the surface normal points along the z-axis. Then, for a set number of samples, we randomly 
 		generate directions on the hemisphere using <code>hemisphereSampler->get_sample()</code>. Each sampled direction <code>wi</code> is converted 
