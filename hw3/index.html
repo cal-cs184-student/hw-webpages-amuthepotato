@@ -200,7 +200,96 @@
 		reduced, leading to rendering times that are several orders of magnitude faster. 
 
 		<h2>Part 3: Direct Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Task 1: Diffuse BSDF</h3>
+		In this task, we implemented the Lambertian diffuse BRDF. A diffuse surface reflects light equally in 
+		all directions over the hemisphere, so the BRDF evaluates to the surface reflectance divided by pi. The 
+		<code>sample_f</code> function samples an incoming light direction on the hemisphere and returns the BRDF evaluation for that 
+		sample direction. 
+
+ 		<h3>Task 2: Zero-bounce illumination</h3>
+		We implemented the <code>zero_bounce_radiance</code> function to return the emission of the surface intersected by the ray. This 
+		represents light that reaches the camera directly from a light source without bouncing off any other surfaces. The 
+		emission is obtained from the surface's BSDF using the <code>get_emission()</code> functin. After implementing this function, I 
+		updated <code>est_radiance_global_illumination</code> to return the zero-bounce radianec instead of the debug normal shading. 
+
+		<h3>Task 3: Direct Lighting with Uniform Hemisphere Sampling</h3>
+		The goal in this task was to estimate direct illumination on a surface point by sampling directions uniformly 
+		over the hemisphere above the surface. Wr use the Monte Carlo approximation of the rendering equation given in class, which is 
+		the integral of the BSDF multiplied by the incoming radiance, multiplied by the angle between the surface normal and the sample incoming direction. 
+		First we create a local coordinate system where the surface normal points along the z-axis. Then, for a set number of samples, we randomly 
+		generate directions on the hemisphere using <code>hemisphereSampler->get_sample()</code>. Each sampled direction <code>wi</code> is converted 
+		into world space (<code>wi_world</code>) and a shadow ray is cast from the surface point toward that direction. 
+		If the shadow ray hits a light, we retrieve the emitted radiance <code>Li</code> from that light and compute the contribution 
+		using the formula <code>L = f(wo, wi) * Li * cos(thetai) / p(wi)</code>. Here, <code>p(wi)</code> is the probability 
+		density function of the uniform hemisphere sample <code>(1/2pi)</code>. After looping over all samples, we divided by the number 
+		of samples to get the Monte Carlo estimate of direct lighting. This method works 
+		universally, but tends to produce noisy results, especially with few samples, because most directions do not hit a light directly. 
+
+		<h3>Task 4: Direct Lighting by Importance Sampling Lights</h3>
+		This task improves the efficiencvy and reduces noise by using importance sampling of the lights themselves. Instead of sampling the entire 
+		hemisphere blindly, we only sample directions that actually points to lights. We use the same equation from Task 3, but now our probability 
+		density function is tailored to the lights. We loop over every light in the scene and sample a direction <code>wi</code> pointing toward the light, 
+		get the distance to the light, and the corresponding PDF. Then, we check whether the surface normal faces the light by using a dot product and cast 
+		a shadow ray limited to the distance of the light to see if anything blocks it. If the shadow ray doesn't intersect anything, we 
+		compute the Lambertian reflection <code>f(w_out, w2o * wi)</code> and multiply by the incoming radiance, the cosine factor, and divide by 
+		the PDF of sampling that direction. By sampling only the directions that actually carry light, this method produces much smoother soft shadows with 
+		far fewer rays compared to uniform hemisphere sampling. 
+
+		<figure>
+			<img src="CBspheres_H_64_32_hemisphere.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBspheres with hemisphere sampling, 64 samples per pixel, 32 light rays</figcaption>
+		</figure>
+
+		<figure>
+			<img src="CBspheres_H_64_32_direct.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBspheres with importance sampling, 64 samples per pixel, 32 light rays</figcaption>
+		</figure>
+
+		<figure>
+			<img src="CBbunny_H_64_32_hemisphere.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with hemisphere sampling, 64 samples per pixel, 32 light rays</figcaption>
+		</figure>
+
+		<figure>
+			<img src="bunny_64_32_direct.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with importance sampling, 64 samples per pixel, 32 light rays</figcaption>
+		</figure>
+
+		When rendering with importance light sampling and 1 sample per pixel using 1 light ray, the soft 
+		shadows are extremely patchy and noisy, because the single ray may or may not reach the light, leading to high 
+		variance. With 4 light rays, the shadows start to fill in, though graininess remains noticeable in the background and 
+		in the shadow. At 16 rays, the shadows are much smoother, and soft shadow gradients become visible. Finally, 
+		with 64 light rays, the shadows are clean and smooth, with minimal speckling, showing that 
+		importance sampling quickly converges because every ray is aimed at the light and contributes meaningful illumination. This 
+		demonstrates how increasing the number of rays improves the estimation of soft shadows, and 
+		reduces Monte Carlo noise significantly. 
+
+		<figure>
+			<img src="bunny_1_1.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with importance sampling, 1 sample per pixel, 1 light ray</figcaption>
+		</figure>
+
+		<figure>
+			<img src="bunny_1_4.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with importance sampling, 1 sample per pixel, 4 light rays</figcaption>
+		</figure>
+
+		<figure>
+			<img src="bunny_1_16.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with importance sampling, 1 sample per pixel, 16 light rays</figcaption>
+		</figure>
+
+		<figure>
+			<img src="bunny_1_64.png" alt="spheres" style="width:70%"/>
+			<figcaption>CBbunny with importance sampling, 1 sample per pixel, 64 light rays</figcaption>
+		</figure>
+
+		When comparing uniform hemisphere sampling to importance sampling, the difference in soft shadow quality 
+		is apparent. With hemisphere samplings, rays are cast uniformly in all directions above the surface, so most rays miss the light entirely. 
+		This means that even with many rays, the soft shadows are noisy, splotchy na dconverge very slowly. They require a 
+		very high number of samples to get smooth gradient. In contrast, light sampling directs rays specifically towards the light 
+		sources, so nearly every sample contributes useful illumination. As a result, soft shadows converge much faster and are 
+		significantly smoother with far fewer rays, producing realistic gradients without the heavy noise seen in hemisphere sampling.
 
 		<h2>Part 4: Global Illumination</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -208,7 +297,7 @@
 		<h2>Part 5: Adaptive Sampling</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
+		<!-- <h2>(Optional) Part 6: Extra Credit Opportunities</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 		
 		<h2>Additional Notes (please remove)</h2>
@@ -220,7 +309,7 @@
 					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
 				</ul>
 			</li>
-		</ul>
+		</ul> -->
 		</div>
 	</body>
 </html>
