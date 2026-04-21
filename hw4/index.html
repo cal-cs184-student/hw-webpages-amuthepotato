@@ -51,8 +51,42 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Part 1: Masses and springs</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		This part of the assignment asked us to implement a basic cloth simulation model using a grid of 
+		point masses connected by springs. We started by constructing a uniformly spaced grid of point masses 
+		based on the cloth’s width, height, and resolution, making sure to store them in row-major order. 
+		Depending on whether the cloth is oriented horizontally or vertically, we assigned positions in either 
+		the xz-plane or xy-plane (with a slight random offset in the z-direction for vertical cloth). 
+		We also marked certain masses as pinned according to the provided pinned indices. After creating 
+		all the point masses, we then established spring connections between them to enforce structural, 
+		shearing, and bending constraints. These springs connect neighboring masses in specific patterns 
+		(adjacent, diagonal, and two units apart) and are stored for use in the simulation. Finally, we verifyed 
+		our implementation visually by rendering the cloth and toggling different constraint types to ensure the 
+		correct springs are being applied.
+		<figure>
+			<img src="other angle of all constraints.png" alt="Screenshots of Pinned2.json" style="width:70%"/>
+			<figcaption>Screenshot of Pinned2.json</figcaption>
+		</figure>
 
+		<figure>
+			<img src="other angle of all constraints 2.png" alt="Other angle" style="width:70%"/>
+			<figcaption>Another screenshot of Pinned2.json</figcaption>
+		</figure>
+
+		<figure>
+			<img src="no shearing.png" alt="No shearing" style="width:70%"/>
+			<figcaption>No shearing constraints</figcaption>
+		</figure>
+
+		<figure>
+			<img src="only shearing.png" alt="Only shearing" style="width:70%"/>
+			<figcaption>Only shearing constraints</figcaption>
+		</figure>
+
+		<figure>
+			<img src="all constraints.png" alt="All constaints" style="width:70%"/>
+			<figcaption>All constraints</figcaption>
+		</figure>
+		
 		<!-- <p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
