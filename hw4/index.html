@@ -114,11 +114,113 @@
 		</div> -->
 
 		<h2>Part 2: Simulation via numerical integration</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		In this part, we extended the cloth model by simulating its motion over time 
+		using physical forces and numerical integration. We computed the total forces 
+		acting on each point mass by combining external forces (like gravity) with spring 
+		forces derived from Hooke’s Law, accounting for structural, shearing, and bending 
+		constraints. Using these forces, we updated each point mass’s position via Verlet integration, 
+		which estimates motion based on current and previous positions while incorporating a damping 
+		factor to simulate energy loss. Finally, we enforced deformation constraints to prevent springs 
+		from stretching beyond a reasonable limit, ensuring the cloth behaves in a stable and realistic 
+		manner during simulation.
+
+		<h3>Spring Constant</h3>
+		The spring constant ks controls how stiff the cloth is by determining how strongly the springs 
+		resist deformation. With a very low ks, the cloth behaves loosely and appears extremely flexible, often 
+		stretching significantly and sagging under gravity before slowly settling into a shape with exaggerated deformations. 
+		In contrast, a high ks makes the cloth much stiffer, causing it to better preserve its original shape and resist 
+		stretching. As a result, the cloth falls more rigidly and reaches a stable configuration more quickly, with minimal 
+		visible deformation between neighboring point masses.
+		<figure>
+			<img src="400 spring constant.png" alt="Low spring constant" style="width:70%"/>
+			<figcaption>Low spring constant, ks=400 N/m</figcaption>
+		</figure>
+		<figure>
+			<img src="40k spring constant.png" alt="High spring constant" style="width:70%"/>
+			<figcaption>High spring constant, ks=40,000 N/m</figcaption>
+		</figure>
+
+		<h3>Density</h3>
+		Density affects the mass of each point mass in the cloth, which in turn influences how the cloth 
+		responds to forces like gravity. With a higher density, the cloth becomes heavier, causing it to fall more 
+		quickly and stretch the springs more due to the increased force. This can lead to more pronounced sagging 
+		and tension in the cloth before it stabilizes. Conversely, a lower density results in a lighter cloth that 
+		falls more slowly and exhibits less dramatic stretching, often appearing more delicate and responsive to 
+		smaller forces.
+		<figure>
+			<img src="density 1.png" alt="Low density" style="width:70%"/>
+			<figcaption>Low density, density=1 g/cm^2</figcaption>
+		</figure>
+		<figure>
+			<img src="density 20.png" alt="High density" style="width:70%"/>
+			<figcaption>High density, density=20 g/cm^2</figcaption>
+		</figure>
+
+		<h3>Damping</h3>
+		Damping controls how much energy is lost over time in the simulation, effectively reducing the cloth’s 
+		motion as it evolves. With low damping, the cloth retains more of its kinetic energy, leading to prolonged 
+		oscillations and visible bouncing before coming to rest. In the screenshot, the cloth is still in motion. 
+		With high damping, motion is quickly reduced, and the cloth settles into its final position much faster with 
+		minimal oscillation. However, excessive damping can make the cloth appear unnaturally sluggish or overdamped, 
+		removing realistic secondary motion.
+		<figure>
+			<img src="damping 0.png" alt="Low damping" style="width:70%"/>
+			<figcaption>Low damping, damping=0%</figcaption>
+		</figure>
+		<figure>
+			<img src="damping 1.png" alt="High damping" style="width:70%"/>
+			<figcaption>High damping, damping=1%</figcaption>
+		</figure>
+
+		<figure>
+			<img src="final resting place with standard parameters.png" alt="Final resting place" style="width:70%"/>
+			<figcaption>Final resting state with standard parameters</figcaption>
+		</figure>
 
 		<h2>Part 3: Handling collisions with other objects</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		To handle collisions with spheres, we implemented a method that checks whether 
+		a point mass lies inside or intersects the sphere by comparing its distance from the 
+		sphere’s center to the sphere’s radius. If the point mass is inside the sphere, we 
+		computed the direction vector from the sphere’s origin to the point mass and normalized 
+		it to find the point on the sphere’s surface where the mass should lie (the tangent point). 
+		We then calculated a correction vector from the point mass’s previous position (last_position) 
+		to this tangent point. The point mass’s position is updated by applying this correction, 
+		scaled by a factor of (1−f) to account for friction. This ensures that the cloth doesn't 
+		penetrate the sphere and instead slides naturally along its surface while losing some energy due to friction. 
+		Additionally, we updated the simulation loop to check every point mass against all collision objects in the 
+		scene at each time step.
 
+		<p>For plane collisions, we implemented a method to detect whether a point mass crosses the plane between 
+			time steps by checking if its current position lies on a different side of the plane than its previous position. 
+			When such a crossing is detected, we computed the tangent point where the point mass would have intersected the 
+			plane along its trajectory. We then calculated a correction vector that moves the point mass back to a position 
+			slightly above the plane, using a small offset (SURFACE_OFFSET) to prevent numerical instability or repeated collisions. 
+			This correction is applied to the point mass’s previous position and scaled by (1−f) to incorporate friction. 
+			As a result, the cloth settles naturally on the plane surface without clipping through it, and friction helps dampen 
+			its motion over time.</p>
+
+		<p>When simulating the cloth draping over a sphere, the spring constant ks significantly affects how the cloth conforms to the surface. 
+			With a low ks value such as 500, the cloth is very flexible and stretches easily, causing it to drape closely over the sphere with pronounced 
+			sagging and deeper folds. At the default ks = 5000, the cloth strikes a balance between flexibility and stiffness, producing realistic folds 
+			while still maintaining some structural integrity. With a high ks value such as 50000, the cloth becomes much stiffer and resists deformation, 
+			resulting in a looser fit over the sphere with fewer and less pronounced folds. Instead of wrapping tightly around the sphere, the cloth 
+			maintains a more rigid shape.</p>
+		<figure>
+			<img src="500.png" alt="Sphere" style="width:70%"/>
+			<figcaption>Shaded cloth in its final resting state with ks=500 N/m</figcaption>
+		</figure>
+		<figure>
+			<img src="5000.png" alt="Sphere" style="width:70%"/>
+			<figcaption>Shaded cloth in its final resting state with ks=5000 N/m</figcaption>
+		</figure>
+		<figure>
+			<img src="50000.png" alt="Sphere" style="width:70%"/>
+			<figcaption>Shaded cloth in its final resting state with ks=50000 N/m</figcaption>
+		</figure>
+		<figure>
+			<img src="plane.png" alt="Plane" style="width:70%"/>
+			<figcaption>Shaded cloth at rest on the plane</figcaption>
+		</figure>
 		<h2>Part 4: Handling self-collisions</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
