@@ -222,10 +222,161 @@
 			<figcaption>Shaded cloth at rest on the plane</figcaption>
 		</figure>
 		<h2>Part 4: Handling self-collisions</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		
+		<p>We implemented self-collision detection using spatial hashing. Rather than checking every pair of point masses, we build a hash table at each timestep that maps a float key to a <code>vector&lt;PointMass *&gt;</code>, where each key uniquely identifies a 3D box volume in the scene and the vector contains all point masses currently inside that box.</p>
 
+		<p>The hash function partitions 3D space into boxes of dimensions w, h, t, where w = <code>3 * width / num_width_points</code>, h = <code>3 * height / num_height_points</code>, and t = <code>max(w, h)</code>. Each point mass's position is truncated to its containing box using <code>floor</code>, and the three box indices are combined into a unique float using large prime multipliers to minimize collisions.</p>
+
+		<p>Self-collision is then handled by looking up each point mass's hash bucket to find nearby candidates. For each candidate closer than <code>2 * thickness</code>, we compute a correction vector that would push the two point masses exactly <code>2 * thickness</code> apart. The final correction applied to the point mass is the average of all pairwise corrections, divided by <code>simulation_steps</code> to keep position changes smooth across sub-steps. <code>build_spatial_map()</code> is rebuilt at every timestep so the buckets always reflect current positions.</p>
+
+		<p>Below, you can see the cloth contacting itself.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="selfcollision_early.png" width="300px"/>
+			<figcaption>Early collision, cloth just beginning to contact itself</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="selfcollision_mid.png" width="300px"/>
+			<figcaption>Mid-fall, visible folds forming</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="selfcollision_rest.png" width="300px"/>
+			<figcaption>Resting state, cloth settled on the plane with folds</figcaption>
+		</figure>
+		</div>
+
+		<h3>Varying ks</h3>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="ks_500.png" width="400px"/>
+			<figcaption>ks = 500, loose, many small tight wrinkles</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="ks_50000.png" width="400px"/>
+			<figcaption>ks = 50000, stiff, fewer broader folds</figcaption>
+		</figure>
+		</div>
+
+		<p>With a low spring constant (<code>ks = 500</code>), the cloth is very loose and flexible, producing many small, tight wrinkles and folds as it collapses on itself. The weak internal forces offer little resistance to deformation. With a high spring constant (<code>ks = 50000</code>), the cloth is much stiffer and it resists bending and tends to form fewer, broader folds, settling into a smoother resting state.</p>
+
+		<h3>Varying Density</h3>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="density_5.png" width="400px"/>
+			<figcaption>density = 5, lighter cloth, spreads out more</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="density_30.png" width="400px"/>
+			<figcaption>density = 30, heavier cloth, more compressed folds</figcaption>
+		</figure>
+		</div>
+
+		<p>With lower density (<code>density = 5</code>), the cloth is lighter and the spring forces dominate, so it spreads out more and resists tight folding. With higher density (<code>density = 30</code>), the increased mass means gravity pulls harder relative to the spring forces, causing the cloth to collapse more heavily onto itself with more compressed, heavier-looking folds in the resting state.</p>
+
+		
 		<h2>Part 5: Shaders</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		
+		<p>A shader is a small, isolated program that runs on the GPU in parallel across many vertices or pixels at once, making real-time rendering feasible where CPU-based approaches like ray tracing are far too slow. The two shader types we use work together as a pipeline. The vertex shader runs first per vertex, transforming geometry from model space into screen space and passing per-vertex data like normals, UV coordinates, and tangents forward as varyings. The rasterizer then interpolates those varyings across each triangle face using barycentric coordinates. The fragment shader runs next per pixel, receiving those interpolated values and computing a final output color. The vertex shader handles where things are, and the fragment shader handles what they look like.</p>
+
+		<h3>Blinn-Phong Shading</h3>
+
+		<p>Blinn-Phong models surface lighting as the sum of three components. The ambient term is a small constant added everywhere, simulating indirect bounced light so nothing is ever completely black. The diffuse term models light scattering based on the angle between the surface normal and the light direction, so surfaces facing the light directly appear brighter, and the effect falls off with distance. The specular term produces the shiny highlight characteristic of glossy surfaces. I used <code>ka = 0.1, kd = 0.8, ks = 0.5, p = 64, and Ia = vec3(1.0)</code>.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="phong_ambient.png" width="300px"/>
+			<figcaption>Ambient component only, flat dim color across mesh</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="phong_diffuse.png" width="300px"/>
+			<figcaption>Diffuse component only, shading based on light angle, no highlight</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="phong_specular.png" width="300px"/>
+			<figcaption>Specular component only, bright highlight spot, dark elsewhere</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="phong_full.png" width="300px"/>
+			<figcaption>Full Blinn-Phong, all three components combined</figcaption>
+		</figure>
+		</div>
+
+		<h3>Texture Mapping</h3>
+
+		<p>The vertex shader passes interpolated UV coordinates <code>v_uv</code> to the fragment shader, which samples the texture using <code>texture(u_texture_1, v_uv)</code> and outputs the result directly as the fragment color. The UV interpolation across each triangle face ensures the texture maps smoothly onto the mesh geometry.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="texture_custom.png" width="480px"/>
+			<figcaption>Custom texture applied to cloth and sphere</figcaption>
+		</figure>
+		</div>
+
+		<h3>Bump Mapping vs Displacement Mapping</h3>
+
+		<p>Both bump mapping and displacement mapping use a height map texture to add surface detail, but they operate at different stages of the pipeline. Bump mapping only modifies surface normals in the fragment shader. By computing finite differences in the height map along u and v, we tilt the local normal to simulate the appearance of bumps without changing any geometry. This is computationally cheap and looks convincing at medium range, but the silhouette of the mesh remains perfectly smooth and there are no real shadows cast by the bumps.</p>
+
+		<p>Displacement mapping physically moves vertex positions in the vertex shader along the normal direction by <code>h(u,v) * kh</code>. This produces real geometric deformation and the mesh actually bumps outward. The tradeoff is that quality is entirely dependent on mesh resolution and displacement can only appear where vertices exist.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="bump_cloth.png" width="400px"/>
+			<figcaption>Bump mapping on cloth</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="bump_sphere.png" width="400px"/>
+			<figcaption>Bump mapping on sphere</figcaption>
+		</figure>
+		</div>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="displacement_sphere.png" width="400px"/>
+			<figcaption>Displacement mapping on sphere, same texture, visibly deformed geometry</figcaption>
+		</figure>
+		</div>
+
+		<p>At <code>-o 16 -a 16</code> (low resolution), bump mapping looks roughly the same as at high resolution since it works purely in the fragment shader and is independent of vertex count. Displacement mapping at low resolution, however, produces chunky, exaggerated spikes and there are too few vertices to faithfully represent the texture's detail, so each displaced vertex moves a large visible distance.</p>
+
+		<p>At <code>-o 128 -a 128</code> (high resolution), bump mapping is again largely unchanged. Displacement mapping improves as the dense mesh captures fine detail from the height map, and the deformation looks smooth and consistent with the texture pattern.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="bump_16.png" width="300px"/>
+			<figcaption>Bump mapping, sphere -o 16 -a 16</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="bump_128.png" width="300px"/>
+			<figcaption>Bump mapping, sphere -o 128 -a 128</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="displacement_16.png" width="300px"/>
+			<figcaption>Displacement mapping, sphere -o 16 -a 16</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="displacement_128.png" width="300px"/>
+			<figcaption>Displacement mapping, sphere -o 128 -a 128</figcaption>
+		</figure>
+		</div>
+
+		<h3>Mirror Shader</h3>
+
+		<p>The mirror shader computes the outgoing eye ray <code>wo</code> from the camera position to the fragment, reflects it across the surface normal to get the incoming direction <code>wi</code>, and samples the environment cubemap at <code>wi</code>. This simulates a perfect mirror material. The cloth and sphere appear to reflect the surrounding environment, with the reflection updating correctly as the view angle changes.</p>
+
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+		<figure style="text-align: center;">
+			<img src="mirror_cloth.png" width="400px"/>
+			<figcaption>Mirror shader on cloth</figcaption>
+		</figure>
+		<figure style="text-align: center;">
+			<img src="mirror_sphere.png" width="400px"/>
+			<figcaption>Mirror shader on sphere</figcaption>
+		</figure>
+		</div>
+
 
 		<!-- <h2>(Optional) Part 6: Extra Credit - Additional cloth simulation features!</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
